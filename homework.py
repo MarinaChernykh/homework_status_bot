@@ -52,8 +52,8 @@ def get_api_answer(current_timestamp):
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     try:
-        response = requests.get(ENDPOINT, headers=HEADERS, params=params)
         logger.debug(f"Отправлен запрос на {ENDPOINT}")
+        response = requests.get(ENDPOINT, headers=HEADERS, params=params)
         if response.status_code != HTTPStatus.OK:
             raise ConnectionError(
                 f'Ответ не получен,код ошибки: {response.status_code}')
@@ -104,7 +104,6 @@ def parse_status(homework):
 def check_tokens():
     """Проверяет доступность токенов."""
     logger.debug("Проверяю токены")
-    # list_tokens = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
     return all((PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID))
 
 
