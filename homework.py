@@ -53,14 +53,17 @@ def get_api_answer(current_timestamp):
     params = {'from_date': timestamp}
     try:
         response = requests.get(ENDPOINT, headers=HEADERS, params=params)
-    except Exception as error:
-        logger.error(f'Ошибка при попытке подключения к эндпоинту: {error}')
-    else:
+        logger.debug(f"Отправлен запрос на {ENDPOINT}")
         if response.status_code != HTTPStatus.OK:
             raise ConnectionError(
                 f'Ответ не получен,код ошибки: {response.status_code}')
         logger.debug("Ответ от API успешно получен")
-        return response.json()
+        try:
+            return response.json()
+        except Exception as error:
+            raise Exception(f'Формат полученного ответа - не JSON: {error}')
+    except Exception as error:
+        raise Exception(f'Ошибка при попытке подключения к эндпоинту: {error}')
 
 
 def check_response(response):
@@ -101,8 +104,8 @@ def parse_status(homework):
 def check_tokens():
     """Проверяет доступность токенов."""
     logger.debug("Проверяю токены")
-    list_tokens = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
-    return all(list_tokens)
+    # list_tokens = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
+    return all((PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID))
 
 
 def main():
@@ -126,7 +129,6 @@ def main():
             else:
                 logger.debug('Статус работы не изменился')
             current_timestamp = response.get('current_date')
-            time.sleep(RETRY_TIME)
 
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
@@ -134,9 +136,10 @@ def main():
             if message != last_error_message:
                 send_message(bot, message)
                 last_error_message = message
-            time.sleep(RETRY_TIME)
         else:
             last_error_message = None
+        finally:
+            time.sleep(RETRY_TIME)
 
 
 if __name__ == '__main__':
